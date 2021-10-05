@@ -7,40 +7,45 @@
 <body>
     <p th:text="'Status: '" />
     <form>
-        <button>Start</button>
+        <input type="button" name="start" value="Connect"/>
+        <input type="button" name="stop" value="Disconnect"/>
     </form>
 
     <script src="/js/jquery-3.5.1.js" type="text/javascript"></script>
     <script src="/js/sockjs.min.js" type="text/javascript"></script>
-    <script src="/js/stomp.min.js" type="text/javascript"></script>
+    <script src="/js/stomp.min.js" type="text/javascript" th:inline="javascript"></script>
     <script>
-        $(function() {
-            var socket = new SockJS('http://localhost:8080/gs-guide-websocket');
-            var stompClient = Stomp.over(socket);
+        var socket;
+        var stompClient;
 
-            stompClient.connect({}, function () {
-                // stompClient.subscribe('/user/topic/greetings', function (response) {
-                stompClient.subscribe('/topic/greetings', function (response) {
-                    console.log('Got ' + response);
-                    $( "p" ).text( "Status: " + JSON.parse(response.body).text );
+        $(function() {
+            $("input[type=button][name=start]").click(function() {
+                socket = new SockJS('http://localhost:8080/gs-guide-websocket');
+                stompClient = Stomp.over(socket);
+
+                var headerName = "[[${_csrf.headerName}]]";
+                var token = "[[${_csrf.token}]]";
+                var headers = {};
+                headers[headerName] = token;
+
+                // if (stompClient) {
+                //     stompClient.send("/app/start", {});
+                // }
+
+                stompClient.connect(headers, function () {alert(socket._transport.url);
+                    // stompClient.subscribe('/user/topic/greetings', function (response) {
+                    stompClient.subscribe('/topic/messages.user.123', function (response) {
+                        console.log('Got ' + response);
+                        $( "p" ).text( "Status: " + JSON.parse(response.body).text );
+                    });
+                    console.info('connected!')
                 });
-                console.info('connected!')
             });
-            // var exampleSocket = new WebSocket("wss://localhost:8080/gs-guide-websocket/topic/greetings");
-            // var exampleSocket = new WebSocket("ws://localhost:8080/gs-guide-websocket");
-            //
-            // exampleSocket.onopen = function(){
-            //     ws.send(JSON.stringify({"command": "subscribe","identifier":"{\"channel\":\"topic/greetings\"}"}))
-            // }
-            //
-            // exampleSocket.onerror = function(event) {
-            //     console.error('WebSocket error', event);
-            // };
-            //
-            // exampleSocket.onmessage = function(event) {
-            //     var msg = JSON.parse(event.data);
-            //     $( "p" ).text( "Status: " + msg );
-            // };
+            $("input[type=button][name=stop]").click(function() {
+                if (stompClient) {
+                    stompClient.send("/app/stop", {});
+                }
+            });
         });
     </script>
 </body>

@@ -12,8 +12,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
   @Override
   public void configureMessageBroker(MessageBrokerRegistry config) {
-    config.enableSimpleBroker("/topic");
+    config.enableSimpleBroker("/topic"/*, "/queue"*/);
     config.setApplicationDestinationPrefixes("/app");
+//    config.setUserDestinationPrefix("/secured/user");
   }
 
   @Override
@@ -22,5 +23,4 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         .setAllowedOrigins("http://localhost:8080", "http://127.0.0.1:8080")
         .withSockJS();
   }
-
 }
