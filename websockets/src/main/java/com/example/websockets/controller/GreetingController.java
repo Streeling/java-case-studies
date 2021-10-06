@@ -1,40 +1,35 @@
 package com.example.websockets.controller;
 
-import com.example.websockets.model.Greeting;
 import com.example.websockets.notification.NotificationDispatcher;
 
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
-import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
-import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import java.security.Principal;
+
+import static com.example.websockets.notification.NotificationDispatcher.STOMP_DESTINATION;
 
 @Controller
 public class GreetingController {
 
   private SimpMessagingTemplate template;
   private NotificationDispatcher notificationDispatcher;
+  private SessionRegistry sessionRegistry;
 
-  public GreetingController(SimpMessagingTemplate template, NotificationDispatcher notificationDispatcher) {
+  public GreetingController(SimpMessagingTemplate template, NotificationDispatcher notificationDispatcher, SessionRegistry sessionRegistry) {
     this.template = template;
     this.notificationDispatcher = notificationDispatcher;
-  }
-
-//  @MessageMapping("/hello")
-  @SendTo("/topic/greetings")
-  public Greeting greeting2() throws InterruptedException {
-    Thread.sleep(1000); // simulated delay
-    return new Greeting("Hello, World!");
+    this.sessionRegistry = sessionRegistry;
   }
 
   @GetMapping("/greeting")
-  public String greeting() throws InterruptedException {
+  public String greeting(Model model) throws InterruptedException {
+    model.addAttribute("stompDestination", STOMP_DESTINATION);
     return "greeting";
   }
 
@@ -47,7 +42,7 @@ public class GreetingController {
   @MessageMapping("/start")
   public void start(StompHeaderAccessor stompHeaderAccessor, Principal principal) {
 //    notificationDispatcher.add(stompHeaderAccessor.getSessionId());
-    notificationDispatcher.add(principal.getName());
+    notificationDispatcher.add(principal.getName(), stompHeaderAccessor);
   }
   @MessageMapping("/stop")
   public void stop(StompHeaderAccessor stompHeaderAccessor, Principal principal) {

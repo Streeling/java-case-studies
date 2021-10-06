@@ -1,15 +1,19 @@
 package com.example.websockets.config;
 
+import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 
 @Configuration
 @EnableWebSecurity
@@ -27,6 +31,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         .and()
         .logout()
         .permitAll();
+    http.sessionManagement().maximumSessions(1);
   }
 
   @Bean
@@ -39,7 +44,24 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             .roles("USER")
             .build();
 
-    return new InMemoryUserDetailsManager(user);
+    UserDetails user2 =
+        User.withDefaultPasswordEncoder()
+            .username("john")
+            .password("password")
+            .roles("USER")
+            .build();
+
+    return new InMemoryUserDetailsManager(user, user2);
+  }
+
+  @Bean
+  public HttpSessionEventPublisher httpSessionEventPublisher() {
+    return new HttpSessionEventPublisher();
+  }
+
+  @Bean
+  SessionRegistry sessionRegistry() {
+    return new SessionRegistryImpl();
   }
 }
 

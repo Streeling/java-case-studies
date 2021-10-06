@@ -27,14 +27,24 @@
                 var token = "[[${_csrf.token}]]";
                 var headers = {};
                 headers[headerName] = token;
-
-                // if (stompClient) {
-                //     stompClient.send("/app/start", {});
-                // }
+                var stompDestination = "[[${stompDestination}]]";
 
                 stompClient.connect(headers, function () {alert(socket._transport.url);
+                    if (stompClient) {
+                        stompClient.send("/app/start", {});
+                    }
+
+                    alert(stompClient.ws._transport.url);
+                    var url = stompClient.ws._transport.url;
+                    url = url.replace(
+                        "ws://localhost:8080/gs-guide-websocket/",  "");
+                    url = url.replace("/websocket", "");
+                    url = url.replace(/^[0-9]+\//, "");
+                    console.log("Your current session is: " + url);
+                    sessionId = url;
+
                     // stompClient.subscribe('/user/topic/greetings', function (response) {
-                    stompClient.subscribe('/topic/messages.user.123', function (response) {
+                    stompClient.subscribe(stompDestination+sessionId, function (response) {
                         console.log('Got ' + response);
                         $( "p" ).text( "Status: " + JSON.parse(response.body).text );
                     });

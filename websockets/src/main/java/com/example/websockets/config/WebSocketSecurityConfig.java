@@ -8,7 +8,7 @@ import org.springframework.security.config.annotation.web.socket.AbstractSecurit
 public class WebSocketSecurityConfig extends AbstractSecurityWebSocketMessageBrokerConfigurer {
   protected void configureInbound(MessageSecurityMetadataSourceRegistry messages) {
     messages
-        .simpDestMatchers("/topic/messages.user.*").authenticated();
+        .simpDestMatchers("/queue/messages*").authenticated();
   }
 
 }
